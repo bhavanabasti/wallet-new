@@ -33,11 +33,14 @@ dependencies:
   http: ^1.1.0
   google_fonts: ^6.1.0
   mobile_scanner: ^7.0.1
-  google_mobile_ads: ^5.1.0   # (already latest)
+  package_info_plus: ^4.1.0  # ✅ Compatible version
+  google_mobile_ads: ^5.1.0
   battery_plus: ^4.0.2
-           
-  device_info_plus: ^10.0.0   # REPLACE `device_info` with `device_info_plus`
-  connectivity_plus: ^6.0.0   # REPLACE `connectivity` with `connectivity_plus`
+  device_info_plus: ^10.0.0
+  connectivity_plus: ^6.0.0
+  uuid: ^4.1.0
+  upgrader: ^8.1.0
+  url_launcher: ^6.2.5
 
 
 

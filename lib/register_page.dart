@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'login_page.dart';
+import 'package:uuid/uuid.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'login_page.dart';
+import 'success_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -16,54 +21,113 @@ class _RegisterPageState extends State<RegisterPage> {
   final mobileController = TextEditingController();
   bool isLoading = false;
 
-  Future<void> registerUser() async {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkForUpdate(context);
+    });
+  }
+
+  void showSnack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Future<void> checkForUpdate(BuildContext context) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2/vehicle_app/sites/default/files/version.json'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final latestVersion = data['latest_version'];
+        final apkUrl = data['apk_url'];
+
+        // ✅ Get current version using package_info_plus
+        final packageInfo = await PackageInfo.fromPlatform();
+        final currentVersion = packageInfo.version;
+
+        if (currentVersion != latestVersion) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Update Available'),
+              content: Text('A new version ($latestVersion) is available.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Later'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    if (await canLaunchUrl(Uri.parse(apkUrl))) {
+                      await launchUrl(Uri.parse(apkUrl), mode: LaunchMode.externalApplication);
+                    } else {
+                      showSnack('Could not launch update URL');
+                    }
+                  },
+                  child: const Text('Update Now'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Update check error: $e");
+    }
+  }
+
+  Future<void> submitForm() async {
     final name = nameController.text.trim();
     final mobile = mobileController.text.trim();
 
     if (name.isEmpty || mobile.isEmpty) {
-      showSnack('⚠️ Please fill all fields');
+      showSnack('Please fill all fields');
       return;
     }
 
     if (!RegExp(r'^\d{10}$').hasMatch(mobile)) {
-      showSnack('⚠️ Mobile number must be 10 digits');
+      showSnack('Invalid mobile number. Must be 10 digits.');
       return;
     }
 
     setState(() => isLoading = true);
 
     try {
-        final response = await http.post(
-        Uri.parse('http://172.16.218.68/vehicle_app/api/register'),
+      final uuid = Uuid();
+      final String uniqueId = uuid.v4();
+
+      final response = await http.post(
+        Uri.parse('http://localhost/vehicle_app/api/register'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'name': name,
-          'mobile_number': mobile, // ✅ fixed key
+          'mobile_number': mobile,
+          'device_id': uniqueId,
         }),
       );
 
+      final jsonResp = json.decode(response.body);
 
-      final data = json.decode(response.body);
-
-      if (response.statusCode == 200 && data['success'] == true) {
-        showSnack('✅ Registered successfully!');
+      if (response.statusCode == 200 && jsonResp['success'] == true) {
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const LoginPage()),
+          MaterialPageRoute(
+            builder: (_) => SuccessPage(nid: int.parse(jsonResp['nid'].toString())),
+          ),
         );
       } else {
-        showSnack('❌ ${data['message'] ?? "Registration failed"}');
+        showSnack('❌ ${jsonResp['message'] ?? "Registration failed"}');
       }
     } catch (e) {
       showSnack('❌ Network error: $e');
     } finally {
       setState(() => isLoading = false);
     }
-  }
-
-  void showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -132,7 +196,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     isLoading
                         ? const CircularProgressIndicator()
                         : ElevatedButton.icon(
-                            onPressed: registerUser,
+                            onPressed: submitForm,
                             icon: const Icon(Icons.app_registration),
                             label: Text(
                               "Register",

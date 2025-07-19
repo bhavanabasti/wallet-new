@@ -2,15 +2,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'login_page.dart';
-import 'home_page.dart'; 
+import 'home_page.dart';
+import 'package:upgrader/upgrader.dart'; 
 import 'theme.dart'; 
 import 'landing_page.dart';
+
 
 
 void main() {
   runApp(const MyApp());
 }
-/* ───────────── APP ROOT ───────────── */
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -18,13 +19,27 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Wallet',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const LandingPage(), // ✅ Start from LandingPage
+      home: UpgradeAlert(
+        child: RegisterPage(), // your app home
+      ),
     );
   }
 }
+/* ───────────── APP ROOT ───────────── */
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       title: 'Flutter Wallet',
+//       theme: ThemeData(primarySwatch: Colors.blue),
+//       home: const LandingPage(), // ✅ Start from LandingPage
+//     );
+//   }
+// }
 /* ───────────── HOME SCREEN ───────────── */
 
 // class HomePage extends StatelessWidget {
@@ -92,7 +107,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
     final response = await http.post(
-        Uri.parse('http://172.16.218.68/vehicle_app/api/register'),
+        Uri.parse('http://localhost/vehicle_app/api/register'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'name': name,

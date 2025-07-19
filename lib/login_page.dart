@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
 
   try {
     final response = await http.post(
-      Uri.parse('http://172.16.218.68/vehicle_app/api/login_qr'),
+      Uri.parse('http://localhost/vehicle_app/api/login_qr'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'mobile': mobile}),
     );
