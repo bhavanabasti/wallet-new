@@ -11,7 +11,7 @@ Future<void> checkForUpdate(BuildContext context) async {
   try {
     // Replace this with your real API endpoint or static JSON file
     final response = await http.get(
-      Uri.parse('http://localhost/vehicle_app/api/app_version'), // or static JSON file
+      Uri.parse('http://172.16.218.68/vehicle_app/api/app_version'), // or static JSON file
     );
 
     if (response.statusCode == 200) {

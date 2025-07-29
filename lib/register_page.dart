@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // ✅ For input formatter
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,7 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> checkForUpdate(BuildContext context) async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2/vehicle_app/sites/default/files/version.json'),
+        Uri.parse('http://172.16.218.68/vehicle_app/sites/default/files/version.json'),
       );
 
       if (response.statusCode == 200) {
@@ -44,7 +45,6 @@ class _RegisterPageState extends State<RegisterPage> {
         final latestVersion = data['latest_version'];
         final apkUrl = data['apk_url'];
 
-        // ✅ Get current version using package_info_plus
         final packageInfo = await PackageInfo.fromPlatform();
         final currentVersion = packageInfo.version;
 
@@ -89,7 +89,7 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    if (!RegExp(r'^\d{10}$').hasMatch(mobile)) {
+    if (mobile.length != 10) {
       showSnack('Invalid mobile number. Must be 10 digits.');
       return;
     }
@@ -101,7 +101,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final String uniqueId = uuid.v4();
 
       final response = await http.post(
-        Uri.parse('http://localhost/vehicle_app/api/register'),
+        Uri.parse('http://172.16.218.68/vehicle_app/api/register'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'name': name,
@@ -111,18 +111,28 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       final jsonResp = json.decode(response.body);
+if (response.statusCode == 200 && jsonResp['success'] == true) {
+  if (!mounted) return;
 
-      if (response.statusCode == 200 && jsonResp['success'] == true) {
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => SuccessPage(nid: int.parse(jsonResp['nid'].toString())),
-          ),
-        );
-      } else {
-        showSnack('❌ ${jsonResp['message'] ?? "Registration failed"}');
-      }
+  try {
+    final rawNid = jsonResp['nid'];
+    final nid = int.tryParse(rawNid.toString());
+
+    if (nid == null) {
+      debugPrint("Invalid nid: $rawNid");
+      showSnack("Registration succeeded but invalid ID returned");
+      return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => SuccessPage(nid: nid)),
+    );
+  } catch (e) {
+    debugPrint("Navigation error: $e");
+    showSnack("Something went wrong. Try again.");
+  }
+}
     } catch (e) {
       showSnack('❌ Network error: $e');
     } finally {
@@ -150,7 +160,7 @@ class _RegisterPageState extends State<RegisterPage> {
             padding: const EdgeInsets.all(24),
             child: Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              elevation: 10,
+              elevation: 12,
               color: Colors.white.withOpacity(0.95),
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -160,7 +170,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     const Icon(Icons.ev_station, size: 60, color: Colors.green),
                     const SizedBox(height: 20),
                     Text(
-                      "Register for Charging Access",
+                      "Register for EV Wallet",
                       style: GoogleFonts.orbitron(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -182,8 +192,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 16),
                     TextField(
                       controller: mobileController,
-                      keyboardType: TextInputType.phone,
+                      keyboardType: TextInputType.number,
+                      maxLength: 10,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       decoration: InputDecoration(
+                        counterText: '',
                         label: Text(
                           'Mobile Number',
                           style: GoogleFonts.orbitron(fontSize: 14),

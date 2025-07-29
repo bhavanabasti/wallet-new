@@ -1,13 +1,14 @@
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:google_fonts/google_fonts.dart';
+import 'package:upgrader/upgrader.dart';
+
 import 'login_page.dart';
-import 'home_page.dart';
-import 'package:upgrader/upgrader.dart'; 
-import 'theme.dart'; 
-import 'landing_page.dart';
-
-
+import 'register_page.dart';
+import 'success_page.dart';
+import 'welcome_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,63 +20,22 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: UpgradeAlert(
-        child: RegisterPage(), // your app home
+      title: 'EV Wallet',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.green,
+        textTheme: GoogleFonts.orbitronTextTheme(),
       ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const WelcomePage(),
+        '/register': (context) => const RegisterPage(),
+        '/login': (context) => const LoginPage(),
+      },
     );
   }
 }
-/* ───────────── APP ROOT ───────────── */
-
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       debugShowCheckedModeBanner: false,
-//       title: 'Flutter Wallet',
-//       theme: ThemeData(primarySwatch: Colors.blue),
-//       home: const LandingPage(), // ✅ Start from LandingPage
-//     );
-//   }
-// }
-/* ───────────── HOME SCREEN ───────────── */
-
-// class HomePage extends StatelessWidget {
-//   const HomePage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text("Welcome")),
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             ElevatedButton(
-//               onPressed: () => Navigator.push(
-//                 context,
-//                 MaterialPageRoute(builder: (_) => const RegisterPage()),
-//               ),
-//               child: const Text("Register"),
-//             ),
-//             const SizedBox(height: 20),
-//             ElevatedButton(
-//               onPressed: () => Navigator.push(
-//                 context,
-//                 MaterialPageRoute(builder: (_) => const LoginPage()),
-//               ),
-//               child: const Text("Login"),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-/* ───────────── REGISTER PAGE ───────────── */
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -98,20 +58,20 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    if (!RegExp(r'^\d{10}$').hasMatch(mobile)) {
-      showSnack('Invalid mobile number. Must be 10 digits.');
-      return;
-    }
+  if (!RegExp(r'^\d{10}$').hasMatch(mobile)) {
+  showSnack('Invalid mobile number. Must be 10 digits.');
+  return;
+}
 
     setState(() => isLoading = true);
 
     try {
-    final response = await http.post(
-        Uri.parse('http://localhost/vehicle_app/api/register'),
+      final response = await http.post(
+        Uri.parse('http://172.16.218.68/vehicle_app/api/register'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'name': name,
-          'mobile_number': mobile, // ✅ fixed key
+          'mobile_number': mobile,
         }),
       );
 
@@ -142,35 +102,90 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('User Registration')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Full Name'),
+      appBar: AppBar(
+        title: const Text('User Registration'),
+        centerTitle: true,
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0f2027), Color(0xFF203A43), Color(0xFF2C5364)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 10,
+              color: Colors.white.withOpacity(0.95),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.ev_station, size: 60, color: Colors.green),
+                    const SizedBox(height: 20),
+                    Text(
+                      "Register for Charging Access",
+                      style: GoogleFonts.orbitron(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        label: Text('Full Name', style: GoogleFonts.orbitron(fontSize: 14)),
+                        prefixIcon: const Icon(Icons.person),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: mobileController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        label: Text('Mobile Number', style: GoogleFonts.orbitron(fontSize: 14)),
+                        prefixIcon: const Icon(Icons.phone_android),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    isLoading
+                        ? const CircularProgressIndicator()
+                        : ElevatedButton.icon(
+                            onPressed: submitForm,
+                            icon: const Icon(Icons.app_registration),
+                            label: Text("Register", style: GoogleFonts.orbitron(fontSize: 16)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              minimumSize: const Size.fromHeight(50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => Navigator.pushNamed(context, '/login'),
+                      child: Text("Already have an account? Login",
+                          style: GoogleFonts.orbitron(fontSize: 14, color: Colors.blueGrey)),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            TextField(
-              controller: mobileController,
-              decoration: const InputDecoration(labelText: 'Mobile Number'),
-              keyboardType: TextInputType.phone,
-            ),
-            const Spacer(),
-            isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: submitForm,
-                    child: const Text('Submit'),
-                  ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
-
-/* ───────────── SUCCESS PAGE ───────────── */
 
 class SuccessPage extends StatelessWidget {
   final int nid;
@@ -188,8 +203,8 @@ class SuccessPage extends StatelessWidget {
             Text('Your ID is: $nid', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Go Back'),
+              onPressed: () => Navigator.pushNamed(context, '/login'),
+              child: const Text('Go to Login'),
             ),
           ],
         ),

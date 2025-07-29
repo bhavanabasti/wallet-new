@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.1.0
-  google_fonts: ^6.1.0
+  google_fonts: ^6.2.1
   mobile_scanner: ^7.0.1
   package_info_plus: ^4.1.0  # ✅ Compatible version
   google_mobile_ads: ^5.1.0
