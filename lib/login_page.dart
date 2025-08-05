@@ -2,9 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
+
 import 'qr_view_page.dart';
-
-
 import 'home_page.dart';
 import 'register_page.dart';
 
@@ -21,12 +20,12 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> loginUser() async {
     final rawMobile = mobileController.text;
-  final mobile = rawMobile.replaceAll(RegExp(r'\D'), '');
+    final mobile = rawMobile.replaceAll(RegExp(r'\D'), '');
 
-   if (mobile.isEmpty || !RegExp(r'^\d{10}$').hasMatch(mobile)) {
-  showSnack('Enter valid 10-digit mobile number');
-  return;
-}
+    if (mobile.isEmpty || !RegExp(r'^\d{10}$').hasMatch(mobile)) {
+      showSnack('Enter valid 10-digit mobile number');
+      return;
+    }
 
     setState(() => isLoading = true);
 
@@ -41,16 +40,28 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.headers['content-type']?.contains('application/json') ?? false) {
         final jsonResp = json.decode(response.body);
-        print("Parsed UID: ${jsonResp['uid']}");
 
         if (response.statusCode == 200 && jsonResp['success'] == true) {
-          final uid = int.parse(jsonResp['uid'].toString());
+          final uidString = jsonResp['uid']?.toString() ?? '';
+          final userId = int.tryParse(uidString);
+
+          if (userId == null || userId <= 0) {
+            showSnack("Invalid user ID received");
+            return;
+          }
+
+          final username = jsonResp['username']?.toString() ?? '';
 
           if (!mounted) return;
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => QRViewPage(uid: uid)),
+            MaterialPageRoute(
+              builder: (context) => QRViewPage(
+                uid: userId,
+                username: mobile,
+              ),
+            ),
           );
         } else {
           showSnack(jsonResp['message'] ?? 'Login failed');

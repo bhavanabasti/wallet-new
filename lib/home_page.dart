@@ -6,10 +6,11 @@ import 'dart:convert'; // ✅ Fix for 'json' error
 
 class HomePage extends StatefulWidget {
   final int uid;
-  const HomePage({required this.uid, super.key});
-
+  final String username;
+ const HomePage({super.key, required this.uid, required this.username});
   @override
-  State<HomePage> createState() => _HomePageState();
+  
+ State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {

@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:upgrader/upgrader.dart';
-
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'qr_view_page.dart';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'success_page.dart';
@@ -36,6 +37,84 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+class HomePage extends StatelessWidget {
+  
+    final int uid;
+  final String username;
+  const HomePage({
+    Key? key,
+    required this.uid,
+    required this.username,
+  }) : super(key: key);
+
+  void sendToArduino(BuildContext context, String deviceId) async {
+    final uri = Uri.parse('http://172.16.218.172/check_device'); // Arduino endpoint
+    try {
+      final response = await http.post(uri, body: {'device_id': deviceId});
+      if (response.statusCode == 200) {
+        final result = response.body.trim().toLowerCase();
+        if (result == 'match') {
+          showDialog(
+            context: context,
+            builder: (_) => const AlertDialog(
+              title: Text("Authorized"),
+              content: Text("Device matched. Access granted."),
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (_) => const AlertDialog(
+              title: Text("Unauthorized"),
+              content: Text("QR code not matched. Access denied."),
+            ),
+          );
+        }
+      } else {
+        throw Exception("Bad response: ${response.statusCode}");
+      }
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Error"),
+          content: Text("Failed to contact Arduino.\n$e"),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Scan QR to Check Device')),
+      body: Center(
+        child: ElevatedButton(
+          child: const Text('Scan QR Code'),
+          onPressed: () async {
+                      final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+              builder: (_) => QRViewPage(uid: uid, username: username),
+              ),
+            );
+            if (result != null) {
+              final deviceId = result.toString();
+              sendToArduino(context, deviceId);
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

@@ -1,5 +1,5 @@
 name: flutter_wallet_app
-description: "A new Flutter project."
+description: "A Flutter wallet scanner app"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.1
+  sdk: '>=3.0.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -32,15 +32,18 @@ dependencies:
     sdk: flutter
   http: ^1.1.0
   google_fonts: ^6.2.1
-  mobile_scanner: ^7.0.1
+  mobile_scanner: ^3.5.7
   package_info_plus: ^4.1.0  # ✅ Compatible version
   google_mobile_ads: ^5.1.0
   battery_plus: ^4.0.2
-  device_info_plus: ^10.0.0
+  device_info_plus: ^10.1.2
   connectivity_plus: ^6.0.0
   uuid: ^4.1.0
   upgrader: ^8.1.0
   url_launcher: ^6.2.5
+  shared_preferences: ^2.2.0
+  permission_handler: ^11.3.0
+
 
 
 
@@ -60,7 +63,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.0
  
 
   
