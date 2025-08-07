@@ -64,11 +64,12 @@ class _QRViewPageState extends State<QRViewPage> {
 
       // Notify Arduino
       final arduinoResponse = await http.post(
-        Uri.parse('http://172.16.218.172/api/check_device'),
+        Uri.parse('http://172.16.233.195/api/check_device'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'device_id': deviceId,
-          'username': widget.username,
+          'mobile': widget.username,
+          'status': 'success',
         }),
       );
 
@@ -284,52 +285,3 @@ class _QRViewPageState extends State<QRViewPage> {
 
 
 
-// import 'package:flutter/material.dart';
-// import 'package:mobile_scanner/mobile_scanner.dart';
-// import 'home_page.dart';
-
-// class QRViewPage extends StatefulWidget {
-//   final int uid;
-
-//   const QRViewPage({super.key, required this.uid});
-
-//   @override
-//   State<QRViewPage> createState() => _QRViewPageState();
-// }
-
-// class _QRViewPageState extends State<QRViewPage> {
-//   bool isScanned = false;
-
-//   void onDetect(Barcode barcode, MobileScannerArguments? args) {
-//     if (isScanned) return;
-
-//     final scannedData = barcode.rawValue;
-//     if (scannedData == null) return;
-
-//     setState(() => isScanned = true); // prevent duplicate scans
-
-//     // ✅ Show success message
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(content: Text("Scanned QR Code: $scannedData")),
-//     );
-
-//     // ✅ Navigate to HomePage
-//     Future.delayed(const Duration(seconds: 1), () {
-//       Navigator.pushReplacement(
-//         context,
-//         MaterialPageRoute(builder: (_) => HomePage(uid: widget.uid)),
-//       );
-//     });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text("Scan QR Code")),
-//       body: MobileScanner(
-//         allowDuplicates: false,
-//         onDetect: onDetect,
-//       ),
-//     );
-//   }
-// }
